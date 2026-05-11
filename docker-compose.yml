@@ -1,10 +1,36 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chat-postgres
+    environment:
+      POSTGRES_DB: chat
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: chat
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat -d chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   socket-server:
     build:
       context: ./socket-server
     container_name: chat-socket-server
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "4000:4000"
     environment:
       PORT: 4000
       ALLOWED_ORIGINS: http://localhost:3000
+      DATABASE_URL: postgresql://chat:chat@postgres:5432/chat?schema=public
+    command: >
+      sh -c "npm run db:generate && npm run db:push && npm start"
+
+volumes:
+  postgres_data:
