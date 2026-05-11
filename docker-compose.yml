@@ -1,0 +1,10 @@
+services:
+  socket-server:
+    build:
+      context: ./socket-server
+    container_name: chat-socket-server
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      ALLOWED_ORIGINS: http://localhost:3000
